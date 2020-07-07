@@ -52,6 +52,7 @@ def preprocess(profiles, query_genes, verbose = True):
     :return: profiles_sub [pd.DataFrame]
     
     '''
+    profiles = 2 ** profiles if np.max(np.max(profiles)) < 50
     show_msg('>> Normalizing by quantile method', LOGS.info, verbose)
     profiles_norm = quantile_normalized(profiles)
     show_msg('>> Filter out low-expressed genes across samples', LOGS.info, verbose)

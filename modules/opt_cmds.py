@@ -16,7 +16,7 @@ import argparse
 # define options for deconPeaker
 
 def opts():
-    parser = argparse.ArgumentParser(description='SearchMarker - Search cell type-specific marker genes on the basis of specified query genes.')
+    parser = argparse.ArgumentParser(description='MSearcher - Search cell type-specific marker genes on the basis of specified query genes.')
     parser.add_argument(
             '--profile', 
             '-p', 
@@ -35,7 +35,7 @@ def opts():
     
     parser.add_argument(
             '--prefix',
-            help = 'Prefix name of preprocessed results. DEFAULT: IDmarkers-Results.',
+            help = 'Prefix name of preprocessed results. DEFAULT: MSearcher-Results.',
             type = str,
             metavar = 'PREFIX',
             default = 'IDmarkers-Results'
@@ -53,7 +53,7 @@ def opts():
     parser.add_argument(
             '--verbose',
             '-v',
-            help = 'verbose logical, to print the detailed information. DEFAULT [TRUE].',
+            help = 'Verbose logical, to print the detailed information. DEFAULT [TRUE].',
             choices = ['TRUE', 'FALSE'],
             default = 'TRUE'
         )

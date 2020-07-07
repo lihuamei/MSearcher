@@ -20,7 +20,7 @@ def quantile_normalized(profiles):
     :return: profiles_norm [pd.DataFrame] Normalized gene expression profile 
     
     '''
-    quantiles = np.mean(np.sort(profiles, axis = 0), axis=1)
+    quantiles = np.mean(np.sort(profiles, axis = 0), axis = 1)
     ranks = np.apply_along_axis(stats.rankdata, 0, profiles)
     rank_indices = ranks.astype(int) - 1
     profiles = pd.DataFrame(quantiles[rank_indices], index = profiles.index)
