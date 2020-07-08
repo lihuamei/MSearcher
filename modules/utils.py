@@ -95,3 +95,15 @@ def multi_process(data_lst, func, nth, df, **kargs):
     else:
         tag_infos = func(data_lst, **kargs)
     return tag_infos
+
+def is_logscale(X):
+    '''
+    check log2 transform or not
+    :param X: [pd.DataFrame] data need to be check
+    :return: logc [bool]
+    
+    '''
+    X = X.values.flatten()
+    qx = np.percentile(X, [0, 25, 50, 75, 99, 100])
+    logc = qx[4] >= 100 or (qx[5] - qx[0] >= 50 and qx[1] >= 0) or (qx[1] >= 0 and qx[1] <= 1 and qx[3] >= 1 and qx[3] <= 2)
+    return (not logc)

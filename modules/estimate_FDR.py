@@ -48,6 +48,7 @@ def phyper_test(decoy_counts, gene_counts, tar_genes, top_num = 50):
     gene_num, gene_names, pvals, tar_len = gene_counts.shape[0], gene_counts.index.values, [], len(tar_genes)
     decoy_counts = decoy_counts[0] if isinstance(decoy_counts, list) else decoy_counts
     for idx, decoy in enumerate(decoy_counts.values):
+        print(idx)
         scores_decoy = measure_simularity(decoy, gene_counts, gene_num, axis = 1)
         decoy_genes  = gene_names[scores_decoy.argsort()[::-1][0 : top_num]]
         common_len   = np.sum(np.in1d(tar_genes, decoy_genes))
@@ -71,7 +72,7 @@ def estimate_FDR(scores_actual, gene_counts, genes_names, top_num = 20):
     pvalues = multi_process(
             gene_counts,
             phyper_test,
-            ncpus,
+            1,
             False,
             gene_counts = gene_counts,
             tar_genes = tar_genes.values,

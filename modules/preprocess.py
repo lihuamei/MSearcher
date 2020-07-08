@@ -26,16 +26,19 @@ def quantile_normalized(profiles):
     profiles = pd.DataFrame(quantiles[rank_indices], index = profiles.index)
     return profiles
 
-def filter_lowexps(profiles, percentile = 5):
+def filter_lowexps(profiles, query_genes, top_num = 10000):
     '''
     Filter out low-expression genes of profiles.
     :param profiles: [pd.DataFrame] Gene expression profile, which rows genes and columns samples.
-    :param percentile: [int] Remove genes whose average expression are below the specified quantile, default: 5.
+    :param query_genes: [list] A list of query genes.
+    :param percentile: [int] How many genes include in analysis. We suppose to include only expressed genes. Default value is 10000.
     :return: profiles_sub [pd.DataFrame]
     
     '''
-    avg_exps = profiles.mean(axis = 1)
-    cut_off  = np.percentile(avg_exps, percentile)
-    profiles_sub = profiles.iloc[np.where(avg_exps > cut_off)]
-    return profiles_sub
+    expr_sum = np.log2(profiles + 1).sum(axis = 1).sort_values(ascending = False)
+    profiles = profiles.loc[expr_sum.index, :]
 
+    for idx, query in enumerate(query_genes):
+        top_num = max(np.where(profiles.index == query)[0], top_num)
+    profiles_sub = profiles.iloc[0 : top_num]
+    return profiles_sub

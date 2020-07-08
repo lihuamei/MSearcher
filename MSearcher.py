@@ -52,11 +52,11 @@ def preprocess(profiles, query_genes, verbose = True):
     :return: profiles_sub [pd.DataFrame]
     
     '''
-    profiles = 2 ** profiles if np.max(np.max(profiles)) < 50
+    profiles = 2 ** profiles if is_logscale(profiles) else profiles
     show_msg('>> Normalizing by quantile method', LOGS.info, verbose)
     profiles_norm = quantile_normalized(profiles)
     show_msg('>> Filter out low-expressed genes across samples', LOGS.info, verbose)
-    profiles_tmp  = filter_lowexps(profiles_norm, percentile = 5)
+    profiles_tmp  = filter_lowexps(profiles_norm, query_genes, top_num = 10000)
     tmp_chk_genes = [ gene for gene in query_genes if gene in profiles_tmp.index ]
     profiles_sub  = profiles_tmp if query_genes == tmp_chk_genes else profiles_sub
     
@@ -74,24 +74,24 @@ def search_markers(query_genes, profiles_sub, outfile = None, verbose = True):
     :return: 0
     
     '''
-    profiles_sub = 2 ** profiles_sub if np.max(np.max(profiles_sub)) < 50 else np.log2(1 + profiles_sub)
-    profiles_sub = profiles_sub.divide(profiles_sub.sum(axis = 1), axis = 0)
-    #profiles_sub = svd_filter(profiles_sub)
+    profiles_svd = svd_filter(profiles_sub)
+    del profiles_sub
     show_msg('>> Searching cell type-specific genes on the basis of query genes.', LOGS.info, verbose)
-    scores_df, gene_counts = [], None
+    scores_df, gene_counts = [], profiles_svd.rank(axis = 0, method = 'min') - 1
 
     for idx, query in enumerate(query_genes):
         show_msg('>> Similarity score calculating: {0}...'.format(query), LOGS.info, verbose)
-        score_sim, gene_counts = search_marker_single(profiles_sub.loc[query], profiles_sub, gene_counts)
+        score_sim = measure_simularity(gene_counts.loc[query], gene_counts, gene_counts.shape[0], axis = 1)
         scores_df.append(score_sim)
     
     scores_actual = pd.DataFrame(
             np.array(scores_df).T, 
             index = profiles_sub.index
-        ).mean(axis = 1) / profiles_sub.shape[1]
+        ).sort_values(by = 0, ascending = False).mean(axis = 1) / profiles_sub.shape[1]
     
     show_msg('>> Estimating P-value to screen significant genes.', LOGS.info, verbose)
-    pvalues, qvalues = estimate_FDR(scores_actual, gene_counts, profiles_sub.index)
+    #import pdb; pdb.set_trace()
+    pvalues, qvalues = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
     search_res = pd.DataFrame(scores_actual).assign(
             Pvalue  = pvalues,
             FDR     = qvalues
