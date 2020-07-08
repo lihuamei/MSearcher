@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #title       : parse_options.py
-#description : Parse the input parameters of the IDmarkers tool.
+#description : Parse the input parameters of the MSearcher tool.
 #author      : Huamei Li
 #date        : 25/04/2018
 #type        : module
@@ -50,7 +50,7 @@ def parse_opts(LOGS):
     '''
     Parse all input parameters
     :param LOGS: [Obj] Logger object.
-    :return: ARGS [object] Variable cointains total input parameters of IDmarkers.
+    :return: ARGS [object] Variable cointains total input parameters of MSearcher.
     
     '''
     ARGS = opts()

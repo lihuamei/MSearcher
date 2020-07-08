@@ -3,7 +3,7 @@
 #description : Estimate FDR and screen significnat genes which have the similar pattern with query genes.
 #author      : Huamei Li
 #date        : 02/05/2020
-#type        : main script
+#type        : module
 #version     : 3.6.9
 #-----------------------------------------------------
 # load own and python modules
