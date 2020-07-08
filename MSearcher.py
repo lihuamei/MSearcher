@@ -74,31 +74,31 @@ def search_markers(query_genes, profiles_sub, outfile = None, verbose = True):
     :return: 0
     
     '''
-    profiles_svd = svd_filter(profiles_sub)
-    del profiles_sub
+    profiles_svd = svd_filter(profiles_sub); del profiles_sub
     show_msg('>> Searching cell type-specific genes on the basis of query genes.', LOGS.info, verbose)
     scores_df, gene_counts = [], profiles_svd.rank(axis = 0, method = 'min') - 1
+    query_genes_remained   = chk_queries_quality(gene_counts, query_genes, gene_counts.shape[0], LOGS, cutoff = 0.6, verbose = verbose)
 
-    for idx, query in enumerate(query_genes):
+    for idx, query in enumerate(query_genes_remained):
         show_msg('>> Similarity score calculating: {0}...'.format(query), LOGS.info, verbose)
-        score_sim = measure_simularity(gene_counts.loc[query], gene_counts, gene_counts.shape[0], axis = 1)
+        score_sim = measure_similarity(gene_counts.loc[query], gene_counts, gene_counts.shape[0], axis = 1)
         scores_df.append(score_sim)
     
     scores_actual = pd.DataFrame(
             np.array(scores_df).T, 
-            index = profiles_sub.index
-        ).sort_values(by = 0, ascending = False).mean(axis = 1) / profiles_sub.shape[1]
+            index = gene_counts.index
+        ).sort_values(by = 0, ascending = False).mean(axis = 1) / (max_score(gene_counts.shape[0], gene_counts.shape[1]) * gene_counts.shape[1])
     
     show_msg('>> Estimating P-value to screen significant genes.', LOGS.info, verbose)
-    #import pdb; pdb.set_trace()
-    pvalues, qvalues = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
+    pvalues, qvalues, jaccard = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
     search_res = pd.DataFrame(scores_actual).assign(
             Pvalue  = pvalues,
-            FDR     = qvalues
+            FDR     = qvalues,
+            Jaccard = jaccard
         )
     search_res.rename(columns = {0 : 'Similarity'}, inplace = True)
-    search_res = search_res.drop(query_genes).sort_values(by = ['FDR', 'Pvalue', 'Similarity'], ascending = [True, True, False])
-    show_msg('Writing searched results to {0} file.'.format(outfile + '.xls'), LOGS.info, verbose)
+    search_res = search_res.drop(query_genes_remained).sort_values(by = ['FDR', 'Pvalue', 'Jaccard', 'Similarity'], ascending = [True, True, False, False])
+    show_msg('>> Writing searched results to {0} file.'.format(outfile + '.xls'), LOGS.info, verbose)
     search_res.index.name = 'GeneSymbol'
     search_res.to_csv(outfile + '.xls', sep = '\t', index = True, header = True)
     return 0

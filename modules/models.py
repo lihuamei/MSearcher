@@ -36,9 +36,9 @@ def svd_filter(profiles_sub, renorm = ['row-norm', 'zscore']):
         profiles_svd = profiles_sub
     return profiles_svd
 
-def measure_simularity(query_cnts, gene_counts, ngenes, axis = 1):
+def measure_similarity(query_cnts, gene_counts, ngenes, axis = 1):
     '''
-    Measure simularity between target genes and query gene based on the empirical frequency.
+    Measure similarity between target genes and query gene based on the empirical frequency.
     :param query_cnts: [np.array] A list counts which less than query gene expression.
     :param gene_counts: [pd.DataFrame] Gene count data.
     :param ngenes: [int] Number of genes.
@@ -50,12 +50,46 @@ def measure_simularity(query_cnts, gene_counts, ngenes, axis = 1):
     sim_scores = -np.sum(np.log10(probs), axis = axis)
     return sim_scores
 
-def chk_queries_quality(gene_counts, query_genes):
+def max_score(ngenes, nsamples):
+    '''
+    The maximun score fo similarity.
+    :param ngenes: [int] Number of genes.
+    :param nsamples: [int] Number of samples.
+    :return: max_score [float]
+    
+    '''
+    probs = [1 / (ngenes + 1)] * nsamples
+    max_score = -np.sum(np.log10(probs)) / nsamples
+    return max_score
+
+def chk_queries_quality(gene_counts, query_genes, ngenes, LOGS, cutoff = 0.8, verbose = True):
     '''
     Ensure query genes have high similarity scores or not.
     :param gene_counts: [pd.DataFrame] Gene count data.
     :param query_gene: [list] A list of query genes.
-    :return: filtered_query_genes [list]
+    :param ngenes: [int] Number of genes.
+    :param LOGS: [obj] Log object.
+    :param cutoff: [float] Cutoff similarity score to select effective query genes, default: 0.8.
+    :param verbose: [bool] verbose logical, to print the detailed information, default: True.
+    :return: query_genes_remained [list]
 
     '''
-    pass
+    num_queries = len(query_genes)
+    sim_matrix  = np.zeros((num_queries, num_queries))
+    for idx in range(num_queries):
+        for jdx in range(num_queries):
+            sim_matrix[idx, :] = measure_similarity(
+                gene_counts.loc[query_genes], 
+                gene_counts.loc[query_genes[idx]], 
+                ngenes, 
+                axis = 1
+            ) / gene_counts.shape[1]
+    
+    sim_matrix = sim_matrix / max_score(gene_counts.shape[0], gene_counts.shape[1])
+    sim_avg = np.mean(sim_matrix, axis = 1)
+    query_genes_remained = np.array(query_genes)[np.where(sim_avg > cutoff)]
+    if (not query_genes_remained):
+        show_msg('>> The query genes failed the quality evaluation, and the average similarity was less than {}'.format(cutoff), LOGS.error, verbose)
+    else:
+        show_msg('>> {} genes passed the quality evaluation.'.format(', '.join(query_genes_remained.tolist())), LOGS.info, verbose)
+    return query_genes_remained

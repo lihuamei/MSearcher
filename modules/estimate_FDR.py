@@ -6,10 +6,10 @@
 #type        : main script
 #version     : 3.6.9
 #-----------------------------------------------------
-# load own module
+# load own and python modules
  
-from modules.utils  import *
-from modules.models import measure_simularity
+from modules.utils   import *
+from modules.models  import measure_similarity
 
 #-----------------------------------------------------
 
@@ -35,25 +35,24 @@ def multipletests(pvals):
     pvals_corrected_[pvals_sortind] = pvals_corrected
     return pvals_corrected_
 
-def phyper_test(decoy_counts, gene_counts, tar_genes, top_num = 50):
+def phyper_test(decoy_counts, gene_counts, tar_genes, top_num = 20):
     '''
     Hypergeometric test for each gene.
     :param decoy_counts: [np.array] Decoy gene counts data.
     :param gene_counts: [pd.DataFrame] Gene counts data.
     :param tar_genes: [np.array] Target gene count data.
-    :param percentile: [float] Cutoff level, default: 99.
+    :param top_num: [int] Top N genes, default: 20.
     :return: p values
     
     '''
     gene_num, gene_names, pvals, tar_len = gene_counts.shape[0], gene_counts.index.values, [], len(tar_genes)
     decoy_counts = decoy_counts[0] if isinstance(decoy_counts, list) else decoy_counts
     for idx, decoy in enumerate(decoy_counts.values):
-        print(idx)
-        scores_decoy = measure_simularity(decoy, gene_counts, gene_num, axis = 1)
+        scores_decoy = measure_similarity(decoy, gene_counts, gene_num, axis = 1)
         decoy_genes  = gene_names[scores_decoy.argsort()[::-1][0 : top_num]]
         common_len   = np.sum(np.in1d(tar_genes, decoy_genes))
         pval = 1 - stats.hypergeom.cdf(common_len - 1, gene_num, tar_len, len(decoy_genes))
-        pvals.append(pval)
+        pvals.append([pval, common_len / (top_num * 2 - common_len)])
     return pvals
     
 def estimate_FDR(scores_actual, gene_counts, genes_names, top_num = 20):
@@ -62,20 +61,19 @@ def estimate_FDR(scores_actual, gene_counts, genes_names, top_num = 20):
     :param scores_res: [pd.DataFrame] Similarity score of each gene between query genes.
     :param gene_counts: [pd.DataFrame] Gene counts data.
     :param genes_names: [np.array] A list of gene names.
-    :param percentile: [float] Cutoff level, default: 99.
-    :return: pvalues, qvalues [np.array]
+    :param top_num: [int] Top N genes, default: 20.
+    :return: pvalues, qvalues, jaccard [np.array]
     
     '''
     tar_genes = genes_names[scores_actual.argsort()[::-1][0 : top_num]]
-
     ncpus = __import__('multiprocessing').cpu_count()
     pvalues = multi_process(
             gene_counts,
             phyper_test,
-            1,
-            False,
+            ncpus,
+            True,
             gene_counts = gene_counts,
             tar_genes = tar_genes.values,
             top_num = top_num
         )
-    return pvalues, multipletests(pvalues)
+    return pvalues.values[:, 0], multipletests(pvalues.values[:, 0]), pvalues.values[:, 1]

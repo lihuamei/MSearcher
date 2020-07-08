@@ -89,7 +89,7 @@ def multi_process(data_lst, func, nth, df, **kargs):
         tag_infos = pools.map(_func, sub_tasks) # multiple processing
         pools.close(); pools.join()
         if df:
-            tag_infos = pd.concat([pd.DataFrame(np.array(tag)) for tag in tag_infos], axis = 1)
+            tag_infos = pd.concat([pd.DataFrame(np.array(tag)) for tag in tag_infos], axis = 0)
         else:
             tag_infos = [subline for line in tag_infos for subline in line]
     else:
