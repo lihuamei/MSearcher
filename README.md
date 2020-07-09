@@ -6,6 +6,20 @@ Description
 
 Tool implementing MSearcher method to search cell type-specific marker genes based on one or several query genes. This method is described in the future publication.
 
+Dependency
+--------
+
+MSearcher's code is written use python3.8.3 on Ubuntu(16.04) system.
+* Python3.8.3:
+	* Numpy
+	* Scipy
+	* Pandas
+	* sklearn
+	* logging
+* Support system:
+	* Linux
+	* Windows
+	
 Usage
 -----
 The main script in this tool is `MSearcher.py`. It needs as input a matrix of the TPM (or RPKM) gene expression from the samples for which to identify potential markers.
