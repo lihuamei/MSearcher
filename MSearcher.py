@@ -90,12 +90,13 @@ def search_markers(query_genes, profiles_sub, outfile = None, verbose = True):
         ).sort_values(by = 0, ascending = False).mean(axis = 1) / (max_score(gene_counts.shape[0], gene_counts.shape[1]) * gene_counts.shape[1])
     
     show_msg('>> Estimating P-value to screen significant genes.', LOGS.info, verbose)
-    pvalues, qvalues, jaccard, OR_score = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
+    pvalues = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
     search_res = pd.DataFrame(scores_actual).assign(
-            Pvalue  = pvalues,
-            FDR     = qvalues,
-            Jaccard = jaccard,
-            ORScore = OR_score
+            Pvalue  = pvalues.values[:, 0],
+            FDR     = pvalues.values[:, 4],
+            Jaccard = pvalues.values[:, 1],
+            ORScore = pvalues.values[:, 2],
+            nCount  = pvalues.values[:, 3]
         )
     search_res.rename(columns = {0 : 'Similarity'}, inplace = True)
     search_res = search_res.drop(query_genes_remained).sort_values(

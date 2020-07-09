@@ -56,7 +56,7 @@ def phyper_test(decoy_counts, gene_counts, tar_genes, top_num = 20):
         idx_ovp      = idx_ary[ovp_idxes]
         upst_genes   = np.sum(idx_ovp <= half_num)
         pval = 1 - stats.hypergeom.cdf(common_len - 1, gene_num, tar_len, len(decoy_genes))
-        pvals.append([pval, common_len / (top_num * 2 - common_len), upst_genes / (common_len - upst_genes)])
+        pvals.append([pval, common_len / (top_num * 2 - common_len), upst_genes / (common_len - upst_genes + 1), common_len])
     return pvals
     
 def estimate_FDR(scores_actual, gene_counts, genes_names, top_num = 20):
@@ -66,7 +66,7 @@ def estimate_FDR(scores_actual, gene_counts, genes_names, top_num = 20):
     :param gene_counts: [pd.DataFrame] Gene counts data.
     :param genes_names: [np.array] A list of gene names.
     :param top_num: [int] Top N genes, default: 20.
-    :return: pvalues, qvalues, jaccard, ORscore [np.array]
+    :return: pvalues, qvalues, jaccard, ORscore, Count [pd.DataFrame]
     
     '''
     tar_genes = genes_names[scores_actual.argsort()[::-1][0 : top_num]]
@@ -80,4 +80,5 @@ def estimate_FDR(scores_actual, gene_counts, genes_names, top_num = 20):
             tar_genes = tar_genes.values,
             top_num = top_num
         )
-    return pvalues.values[:, 0], multipletests(pvalues.values[:, 0]), pvalues.values[:, 1],  pvalues.values[:, 2]
+    pvalues['FDR'] = multipletests(pvalues.values[:, 0])
+    return pvalues
