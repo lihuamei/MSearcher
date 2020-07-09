@@ -90,14 +90,18 @@ def search_markers(query_genes, profiles_sub, outfile = None, verbose = True):
         ).sort_values(by = 0, ascending = False).mean(axis = 1) / (max_score(gene_counts.shape[0], gene_counts.shape[1]) * gene_counts.shape[1])
     
     show_msg('>> Estimating P-value to screen significant genes.', LOGS.info, verbose)
-    pvalues, qvalues, jaccard = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
+    pvalues, qvalues, jaccard, OR_score = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
     search_res = pd.DataFrame(scores_actual).assign(
             Pvalue  = pvalues,
             FDR     = qvalues,
-            Jaccard = jaccard
+            Jaccard = jaccard,
+            ORScore = OR_score
         )
     search_res.rename(columns = {0 : 'Similarity'}, inplace = True)
-    search_res = search_res.drop(query_genes_remained).sort_values(by = ['FDR', 'Pvalue', 'Jaccard', 'Similarity'], ascending = [True, True, False, False])
+    search_res = search_res.drop(query_genes_remained).sort_values(
+            by = ['FDR', 'Pvalue', 'Jaccard', 'ORScore', 'Similarity'], 
+            ascending = [True, True, False, False, False]
+        )
     show_msg('>> Writing searched results to {0} file.'.format(outfile + '.xls'), LOGS.info, verbose)
     search_res.index.name = 'GeneSymbol'
     search_res.to_csv(outfile + '.xls', sep = '\t', index = True, header = True)
