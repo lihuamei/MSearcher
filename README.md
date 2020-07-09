@@ -4,7 +4,7 @@ MSearchmer
 Description
 ----------------------------------------
 
-Tool implementing MSearcher emthod to search cell type-specific marker genes based on one or several query genes. This method is described in the future publication.
+Tool implementing MSearcher method to search cell type-specific marker genes based on one or several query genes. This method is described in the future publication.
 
 Usage
 -----
@@ -28,9 +28,17 @@ optional arguments:
                         Verbose logical, to print the detailed information. DEFAULT [TRUE].            
                                                                                                                                                                                                              
 ```
-Example for the usage: python ../MSearcher.py --profile=data/GSE19830/GSE19830_Shen_Orr_mixture_data.xls --query-genes=1368161_a_at --prefix=GSE19830_Shen_Orr-Liver-MSearcher-Results
 
+Example
+------
+
+```
+python ../MSearcher.py --profile=data/GSE19830/GSE19830_Shen_Orr_mixture_data.xls --query-genes=1368161_a_at --prefix=GSE19830_Shen_Orr-Liver-MSearcher-Results
+
+```
 Runing information
+---------
+
 ```
 INFO  @ Thu, 09 Jul 2020 09:05:59: >> Check query genes 
 INFO  @ Thu, 09 Jul 2020 09:05:59: >> Normalizing by quantile method 
