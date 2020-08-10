@@ -121,7 +121,7 @@ def run():
         ARGS.query_genes = chk_quries(ARGS.profiles, ARGS.query_genes, ARGS.verbose)
         profiles_sub = preprocess(ARGS.profiles, ARGS.query_genes, ARGS.verbose)
         search_markers(ARGS.query_genes, profiles_sub, ARGS.outfile, ARGS.verbose)
-        show_msg('Elapsed time is {} seconds'.format(time() - start), LOGS.info, ARGS.verbose)
+        show_msg('>> Elapsed time is {} seconds'.format(time() - start), LOGS.info, ARGS.verbose)
     except Exception:
         __import__('traceback').print_exc()
         status = 1
