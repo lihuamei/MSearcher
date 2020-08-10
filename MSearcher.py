@@ -56,7 +56,7 @@ def preprocess(profiles, query_genes, verbose = True):
     show_msg('>> Normalizing by quantile method', LOGS.info, verbose)
     profiles_norm = quantile_normalized(profiles)
     show_msg('>> Filter out low-expressed genes across samples', LOGS.info, verbose)
-    profiles_tmp  = filter_lowexps(profiles_norm, query_genes, top_num = 10000)
+    profiles_tmp  = filter_lowexps(profiles_norm, query_genes, percentile = 5)
     tmp_chk_genes = [ gene for gene in query_genes if gene in profiles_tmp.index ]
     profiles_sub  = profiles_tmp if query_genes == tmp_chk_genes else profiles_sub
     
@@ -74,11 +74,11 @@ def search_markers(query_genes, profiles_sub, outfile = None, verbose = True):
     :return: 0
     
     '''
-    profiles_svd = svd_filter(profiles_sub); del profiles_sub
+    profiles_svd = svd_filter(profiles_sub, renorm = 'zscore'); del profiles_sub
     show_msg('>> Searching cell type-specific genes on the basis of query genes.', LOGS.info, verbose)
     scores_df, gene_counts = [], profiles_svd.rank(axis = 0, method = 'min') - 1
     query_genes_remained   = chk_queries_quality(gene_counts, query_genes, gene_counts.shape[0], LOGS, cutoff = 0.6, verbose = verbose)
-
+    
     for idx, query in enumerate(query_genes_remained):
         show_msg('>> Similarity score calculating: {0}...'.format(query), LOGS.info, verbose)
         score_sim = measure_similarity(gene_counts.loc[query], gene_counts, gene_counts.shape[0], axis = 1)
@@ -89,6 +89,7 @@ def search_markers(query_genes, profiles_sub, outfile = None, verbose = True):
             index = gene_counts.index
         ).sort_values(by = 0, ascending = False).mean(axis = 1) / (max_score(gene_counts.shape[0], gene_counts.shape[1]) * gene_counts.shape[1])
     
+    scores_actual = scores_actual.iloc[0 : 2000]
     show_msg('>> Estimating P-value to screen significant genes.', LOGS.info, verbose)
     pvalues = estimate_FDR(scores_actual, gene_counts.loc[scores_actual.index, : ], scores_actual.index)
     search_res = pd.DataFrame(scores_actual).assign(

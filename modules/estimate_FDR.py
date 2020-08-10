@@ -69,9 +69,10 @@ def estimate_FDR(scores_actual, gene_counts, genes_names, top_num = 20):
     :return: pvalues, qvalues, jaccard, ORscore, Count [pd.DataFrame]
     
     '''
-    tar_genes = genes_names[scores_actual.argsort()[::-1][0 : top_num]]
-    ncpus = __import__('multiprocessing').cpu_count()
-    pvalues = multi_process(
+    gene_counts = gene_counts.rank(axis = 0, method = 'min') - 1
+    tar_genes   = genes_names[scores_actual.argsort()[::-1][0 : top_num]]
+    ncpus       = __import__('multiprocessing').cpu_count()
+    pvalues     = multi_process(
             gene_counts,
             phyper_test,
             ncpus,

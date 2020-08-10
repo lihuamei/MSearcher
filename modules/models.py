@@ -32,6 +32,7 @@ def svd_filter(profiles_sub, renorm = ['row-norm', 'zscore']):
         pca_model = PCA(n_components = 0.99)
         pca_model.fit(profiles_sub)
         profiles_svd = pca_model.transform(profiles_sub)
+        profiles_svd = pd.DataFrame(profiles_svd, index = profiles_sub.index)
     else:
         profiles_svd = profiles_sub
     return profiles_svd
