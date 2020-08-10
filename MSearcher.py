@@ -55,7 +55,7 @@ def preprocess(profiles, query_genes, verbose = True):
     profiles = 2 ** profiles if is_logscale(profiles) else profiles
     show_msg('>> Normalizing by quantile method', LOGS.info, verbose)
     profiles_norm = quantile_normalized(profiles)
-    show_msg('>> Filter out low-expressed genes across samples', LOGS.info, verbose)
+    show_msg('>> Filtering out low-expressed genes across samples', LOGS.info, verbose)
     profiles_tmp  = filter_lowexps(profiles_norm, query_genes, percentile = 5)
     tmp_chk_genes = [ gene for gene in query_genes if gene in profiles_tmp.index ]
     profiles_sub  = profiles_tmp if query_genes == tmp_chk_genes else profiles_sub
@@ -80,7 +80,7 @@ def search_markers(query_genes, profiles_sub, outfile = None, verbose = True):
     query_genes_remained   = chk_queries_quality(gene_counts, query_genes, gene_counts.shape[0], LOGS, cutoff = 0.6, verbose = verbose)
     
     for idx, query in enumerate(query_genes_remained):
-        show_msg('>> Similarity score calculating: {0}...'.format(query), LOGS.info, verbose)
+        show_msg('>> Calculating similarity score: {0}...'.format(query), LOGS.info, verbose)
         score_sim = measure_similarity(gene_counts.loc[query], gene_counts, gene_counts.shape[0], axis = 1)
         scores_df.append(score_sim)
     
